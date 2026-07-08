@@ -1,5 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { deleteTrack as dbDelete, getAllTracks, putTrack } from "@/lib/track-store";
+import {
+  deleteTrack as dbDelete,
+  getAllTracks,
+  putTrack,
+  requestPersistentStorage,
+} from "@/lib/track-store";
 import {
   Play,
   Pause,

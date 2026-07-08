@@ -238,6 +238,7 @@ export function Player() {
   };
 
   const removeTrack = (id: string) => {
+    dbDelete(id).catch((err) => console.warn("Failed to delete track", err));
     setTracks((prev) => {
       const idx = prev.findIndex((t) => t.id === id);
       if (idx === -1) return prev;

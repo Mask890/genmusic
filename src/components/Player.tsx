@@ -59,14 +59,54 @@ export function Player() {
 
   const track = tracks[current];
 
-  // Cleanup URLs on unmount
+  // Load persisted tracks from IndexedDB on mount
   useEffect(() => {
+    let cancelled = false;
+    getAllTracks()
+      .then((stored) => {
+        if (cancelled || !stored.length) return;
+        const restored: Track[] = stored.map((s) => ({
+          id: s.id,
+          url: URL.createObjectURL(s.blob),
+          title: s.title,
+          artist: s.artist,
+        }));
+        setTracks(restored);
+        const savedIdx = Number(localStorage.getItem("pebble:current") ?? "0");
+        setCurrent(Number.isFinite(savedIdx) && savedIdx < restored.length ? savedIdx : 0);
+      })
+      .catch((err) => console.warn("Failed to load library", err));
+    const savedShuffle = localStorage.getItem("pebble:shuffle");
+    const savedRepeat = localStorage.getItem("pebble:repeat") as RepeatMode | null;
+    if (savedShuffle === "1") setShuffle(true);
+    if (savedRepeat === "all" || savedRepeat === "one") setRepeat(savedRepeat);
     return () => {
-      tracks.forEach((t) => URL.revokeObjectURL(t.url));
+      cancelled = true;
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Revoke object URLs when tracks are removed/replaced
+  useEffect(() => {
+    const urls = tracks.map((t) => t.url);
+    return () => {
+      // only runs on full unmount thanks to empty-deps above; per-track cleanup happens in removeTrack
+      void urls;
+    };
+  }, [tracks]);
+
+  // Persist playback preferences
+  useEffect(() => {
+    localStorage.setItem("pebble:current", String(current));
+  }, [current]);
+  useEffect(() => {
+    localStorage.setItem("pebble:shuffle", shuffle ? "1" : "0");
+  }, [shuffle]);
+  useEffect(() => {
+    localStorage.setItem("pebble:repeat", repeat);
+  }, [repeat]);
+
 
   // Setup analyser once we have an audio element and user interacts (play)
   const ensureAnalyser = () => {

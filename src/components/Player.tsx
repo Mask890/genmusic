@@ -117,6 +117,10 @@ export function Player() {
   useEffect(() => {
     localStorage.setItem("pebble:repeat", repeat);
   }, [repeat]);
+  useEffect(() => {
+    localStorage.setItem("pebble:viz", vizMode);
+  }, [vizMode]);
+
 
 
   // Setup analyser once we have an audio element and user interacts (play)

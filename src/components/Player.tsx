@@ -290,7 +290,7 @@ export function Player() {
           <div className="animate-pulse-ring absolute -inset-4 rounded-[60px] bg-primary/20 blur-xl" />
           <div className="relative grid size-56 place-items-center overflow-hidden rounded-[48px] bg-surface shadow-2xl ring-1 ring-white/10">
             {/* Live visualizer canvas replaces the placeholder art */}
-            <Visualizer levels={levels} />
+            <Visualizer analyserRef={analyserRef} playing={playing} />
             {!track && (
               <div className="absolute inset-0 grid place-items-center text-center">
                 <div className="flex flex-col items-center gap-2 text-muted-foreground">

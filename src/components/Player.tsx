@@ -1,5 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { deleteTrack as dbDelete, getAllTracks, putTrack } from "@/lib/track-store";
+import {
+  deleteTrack as dbDelete,
+  getAllTracks,
+  putTrack,
+  requestPersistentStorage,
+} from "@/lib/track-store";
 import {
   Play,
   Pause,
@@ -71,6 +76,8 @@ export function Player() {
   // Load persisted tracks from IndexedDB on mount
   useEffect(() => {
     let cancelled = false;
+    // Ask browser to keep this origin's storage durable (no eviction).
+    requestPersistentStorage().catch(() => {});
     getAllTracks()
       .then((stored) => {
         if (cancelled || !stored.length) return;
@@ -175,25 +182,33 @@ export function Player() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [playing]);
 
-  const handleFiles = (fl: FileList | null) => {
+  const handleFiles = async (fl: FileList | null) => {
     if (!fl) return;
     const files = Array.from(fl).filter((f) => f.type.startsWith("audio"));
     if (!files.length) return;
-    const newTracks: Track[] = files.map((f) => {
+    // Ensure durable storage before writing — fixes eviction in some previews.
+    await requestPersistentStorage().catch(() => {});
+    const newTracks: Track[] = [];
+    for (const f of files) {
       const { title, artist } = parseName(f);
       const id = `${f.name}-${f.size}-${f.lastModified}-${Math.random().toString(36).slice(2, 7)}`;
-      // fire-and-forget persist to IndexedDB
-      putTrack({
-        id,
-        name: f.name,
-        type: f.type,
-        title,
-        artist,
-        addedAt: Date.now(),
-        blob: f,
-      }).catch((err) => console.warn("Failed to persist track", err));
-      return { id, url: URL.createObjectURL(f), title, artist };
-    });
+      try {
+        // Await write so a fast reload right after upload can't lose the file.
+        await putTrack({
+          id,
+          name: f.name,
+          type: f.type,
+          title,
+          artist,
+          addedAt: Date.now(),
+          blob: f,
+        });
+        newTracks.push({ id, url: URL.createObjectURL(f), title, artist });
+      } catch (err) {
+        console.warn("Failed to persist track", f.name, err);
+      }
+    }
+    if (!newTracks.length) return;
     setTracks((prev) => {
       if (prev.length === 0) setCurrent(0);
       return [...prev, ...newTracks];

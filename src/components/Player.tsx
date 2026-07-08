@@ -29,10 +29,10 @@ type VizMode =
   | "wave"
   | "particles";
 const VIZ_MODES: VizMode[] = [
+  "plasma",
   "tiedye",
   "tunnel",
   "bloom",
-  "plasma",
   "bars",
   "wave",
   "particles",

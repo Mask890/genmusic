@@ -15,6 +15,14 @@ import {
 } from "lucide-react";
 
 type RepeatMode = "off" | "all" | "one";
+type VizMode = "plasma" | "bars" | "wave" | "particles";
+const VIZ_MODES: VizMode[] = ["plasma", "bars", "wave", "particles"];
+const VIZ_LABELS: Record<VizMode, string> = {
+  plasma: "Plasma",
+  bars: "Bars",
+  wave: "Wave",
+  particles: "Particles",
+};
 
 type Track = {
   id: string;
@@ -49,6 +57,7 @@ export function Player() {
   const [repeat, setRepeat] = useState<RepeatMode>("off");
   const [libraryOpen, setLibraryOpen] = useState(false);
   const [levels, setLevels] = useState<number[]>(() => Array(24).fill(0));
+  const [vizMode, setVizMode] = useState<VizMode>("plasma");
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -80,6 +89,8 @@ export function Player() {
     const savedRepeat = localStorage.getItem("pebble:repeat") as RepeatMode | null;
     if (savedShuffle === "1") setShuffle(true);
     if (savedRepeat === "all" || savedRepeat === "one") setRepeat(savedRepeat);
+    const savedViz = localStorage.getItem("pebble:viz") as VizMode | null;
+    if (savedViz && VIZ_MODES.includes(savedViz)) setVizMode(savedViz);
     return () => {
       cancelled = true;
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
@@ -106,6 +117,10 @@ export function Player() {
   useEffect(() => {
     localStorage.setItem("pebble:repeat", repeat);
   }, [repeat]);
+  useEffect(() => {
+    localStorage.setItem("pebble:viz", vizMode);
+  }, [vizMode]);
+
 
 
   // Setup analyser once we have an audio element and user interacts (play)
@@ -334,7 +349,7 @@ export function Player() {
           <div className="animate-pulse-ring absolute -inset-4 rounded-[60px] bg-primary/20 blur-xl" />
           <div className="relative grid size-56 place-items-center overflow-hidden rounded-[48px] bg-surface shadow-2xl ring-1 ring-white/10">
             {/* Live visualizer canvas replaces the placeholder art */}
-            <Visualizer analyserRef={analyserRef} playing={playing} />
+            <Visualizer analyserRef={analyserRef} playing={playing} mode={vizMode} />
             {!track && (
               <div className="absolute inset-0 grid place-items-center text-center">
                 <div className="flex flex-col items-center gap-2 text-muted-foreground">
@@ -345,8 +360,20 @@ export function Player() {
                 </div>
               </div>
             )}
+            <button
+              onClick={() =>
+                setVizMode(
+                  (m) => VIZ_MODES[(VIZ_MODES.indexOf(m) + 1) % VIZ_MODES.length],
+                )
+              }
+              aria-label={`Visualizer style: ${VIZ_LABELS[vizMode]}`}
+              className="glass absolute bottom-2 right-2 rounded-full px-2.5 py-1 font-mono text-[9px] uppercase tracking-widest text-foreground/80 transition hover:text-foreground"
+            >
+              {VIZ_LABELS[vizMode]}
+            </button>
           </div>
         </div>
+
 
         <div className="animate-slide-up mt-10 max-w-full text-center [animation-delay:120ms]">
           <h1 className="truncate text-balance text-2xl font-bold tracking-tight">
@@ -501,14 +528,23 @@ export function Player() {
 function Visualizer({
   analyserRef,
   playing,
+  mode,
 }: {
   analyserRef: React.RefObject<AnalyserNode | null>;
   playing: boolean;
+  mode: VizMode;
 }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const rafRef = useRef<number | null>(null);
   const phaseRef = useRef(0);
   const smoothRef = useRef<Float32Array | null>(null);
+  const particlesRef = useRef<
+    { x: number; y: number; vx: number; vy: number; life: number; hue: number }[]
+  >([]);
+  const modeRef = useRef<VizMode>(mode);
+  useEffect(() => {
+    modeRef.current = mode;
+  }, [mode]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -534,10 +570,13 @@ function Visualizer({
       const analyser = analyserRef.current;
       const w = canvas.width;
       const h = canvas.height;
+      const activeMode = modeRef.current;
 
-      // trailing fade for tie-dye smear
+      // trailing fade — heavier for particle trails, lighter for smear looks
+      const fadeAlpha =
+        activeMode === "particles" ? 0.14 : activeMode === "bars" ? 0.35 : 0.18;
       ctx.globalCompositeOperation = "source-over";
-      ctx.fillStyle = "rgba(10, 8, 20, 0.18)";
+      ctx.fillStyle = `rgba(10, 8, 20, ${fadeAlpha})`;
       ctx.fillRect(0, 0, w, h);
 
       if (!analyser) return;
@@ -556,8 +595,9 @@ function Visualizer({
       bass = bass / bassEnd / 255;
 
       let mid = 0;
-      for (let i = bassEnd; i < freq.length * 0.5; i++) mid += freq[i];
-      mid = mid / (freq.length * 0.5 - bassEnd) / 255;
+      const midEnd = Math.floor(freq.length * 0.5);
+      for (let i = bassEnd; i < midEnd; i++) mid += freq[i];
+      mid = mid / (midEnd - bassEnd) / 255;
 
       phaseRef.current += 0.006 + bass * 0.04;
       const phase = phaseRef.current;
@@ -565,70 +605,174 @@ function Visualizer({
       const cx = w / 2;
       const cy = h / 2;
       const baseR = Math.min(w, h) * 0.18;
+      const smooth = smoothRef.current!;
+      const t = time!;
 
-      // additive plasma blobs (tie-dye)
-      ctx.globalCompositeOperation = "lighter";
-      const colors = [
-        [255, 90, 200], // pink
-        [120, 200, 255], // cyan
-        [180, 130, 255], // violet
-        [255, 180, 120], // amber
-      ];
-      for (let i = 0; i < 4; i++) {
-        const a = phase * (0.6 + i * 0.15) + (i * Math.PI) / 2;
-        const r = baseR * (1.1 + Math.sin(phase * 1.3 + i) * 0.35) + bass * baseR * 1.8;
-        const x = cx + Math.cos(a) * baseR * (0.5 + mid * 0.9);
-        const y = cy + Math.sin(a * 1.1) * baseR * (0.5 + mid * 0.9);
-        const grad = ctx.createRadialGradient(x, y, 0, x, y, r);
-        const [cr, cg, cb] = colors[i];
-        grad.addColorStop(0, `rgba(${cr},${cg},${cb},${0.55 + bass * 0.4})`);
-        grad.addColorStop(1, `rgba(${cr},${cg},${cb},0)`);
-        ctx.fillStyle = grad;
+      if (activeMode === "plasma") {
+        // Tie-dye plasma + WMP radial spokes + waveform ring
+        ctx.globalCompositeOperation = "lighter";
+        const colors = [
+          [255, 90, 200],
+          [120, 200, 255],
+          [180, 130, 255],
+          [255, 180, 120],
+        ];
+        for (let i = 0; i < 4; i++) {
+          const a = phase * (0.6 + i * 0.15) + (i * Math.PI) / 2;
+          const r = baseR * (1.1 + Math.sin(phase * 1.3 + i) * 0.35) + bass * baseR * 1.8;
+          const x = cx + Math.cos(a) * baseR * (0.5 + mid * 0.9);
+          const y = cy + Math.sin(a * 1.1) * baseR * (0.5 + mid * 0.9);
+          const grad = ctx.createRadialGradient(x, y, 0, x, y, r);
+          const [cr, cg, cb] = colors[i];
+          grad.addColorStop(0, `rgba(${cr},${cg},${cb},${0.55 + bass * 0.4})`);
+          grad.addColorStop(1, `rgba(${cr},${cg},${cb},0)`);
+          ctx.fillStyle = grad;
+          ctx.beginPath();
+          ctx.arc(x, y, r, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        const spokes = 64;
+        ctx.lineCap = "round";
+        for (let i = 0; i < spokes; i++) {
+          const bin = Math.floor((i / spokes) * freq.length * 0.7);
+          const target = freq[bin] / 255;
+          smooth[bin] = smooth[bin] * 0.7 + target * 0.3;
+          const v = smooth[bin];
+          const angle = (i / spokes) * Math.PI * 2 + phase * 0.3;
+          const inner = baseR * 0.55;
+          const outer = inner + v * baseR * 1.6 + 4;
+          const hue = (i / spokes) * 320 + phase * 40;
+          ctx.strokeStyle = `hsla(${hue}, 95%, ${55 + v * 25}%, ${0.35 + v * 0.6})`;
+          ctx.lineWidth = 2 * dpr + v * 3 * dpr;
+          ctx.beginPath();
+          ctx.moveTo(cx + Math.cos(angle) * inner, cy + Math.sin(angle) * inner);
+          ctx.lineTo(cx + Math.cos(angle) * outer, cy + Math.sin(angle) * outer);
+          ctx.stroke();
+        }
+      } else if (activeMode === "bars") {
+        // Classic WMP mirrored spectrum bars from the bottom
+        ctx.globalCompositeOperation = "lighter";
+        const bars = 40;
+        const gap = 2 * dpr;
+        const totalGap = gap * (bars - 1);
+        const barW = (w - totalGap) / bars;
+        for (let i = 0; i < bars; i++) {
+          const bin = Math.floor((i / bars) * freq.length * 0.6);
+          const target = freq[bin] / 255;
+          smooth[bin] = smooth[bin] * 0.65 + target * 0.35;
+          const v = smooth[bin];
+          const bh = Math.max(2 * dpr, v * h * 0.9);
+          const x = i * (barW + gap);
+          const y = h - bh;
+          const hue = 300 - (i / bars) * 200 + phase * 30;
+          const grad = ctx.createLinearGradient(0, y, 0, h);
+          grad.addColorStop(0, `hsla(${hue}, 100%, 72%, 0.95)`);
+          grad.addColorStop(1, `hsla(${hue + 40}, 100%, 55%, 0.15)`);
+          ctx.fillStyle = grad;
+          ctx.fillRect(x, y, barW, bh);
+          // peak cap
+          ctx.fillStyle = `hsla(${hue}, 100%, 85%, 0.9)`;
+          ctx.fillRect(x, y - 2 * dpr, barW, 2 * dpr);
+        }
+      } else if (activeMode === "wave") {
+        // Layered oscilloscope waves with color pulse background
+        ctx.globalCompositeOperation = "source-over";
+        const pulse = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(w, h) * 0.6);
+        pulse.addColorStop(0, `hsla(${(phase * 80) % 360}, 90%, 60%, ${0.15 + bass * 0.35})`);
+        pulse.addColorStop(1, "rgba(10,8,20,0)");
+        ctx.fillStyle = pulse;
+        ctx.fillRect(0, 0, w, h);
+
+        ctx.globalCompositeOperation = "lighter";
+        const layers = 3;
+        for (let l = 0; l < layers; l++) {
+          ctx.beginPath();
+          const yOff = (l - 1) * 6 * dpr;
+          const amp = (h * 0.28) * (0.6 + bass * 0.8);
+          for (let i = 0; i < t.length; i++) {
+            const p = i / (t.length - 1);
+            const s = (t[i] - 128) / 128;
+            const x = p * w;
+            const y = cy + yOff + s * amp * Math.sin(p * Math.PI);
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          }
+          const hue = (phase * 60 + l * 90) % 360;
+          ctx.strokeStyle = `hsla(${hue}, 100%, ${70 - l * 10}%, ${0.9 - l * 0.25})`;
+          ctx.lineWidth = (2 + (layers - l)) * dpr;
+          ctx.stroke();
+        }
+      } else if (activeMode === "particles") {
+        // Beat-triggered particle burst from center
+        const particles = particlesRef.current;
+        const beat = bass > 0.55;
+        const emit = beat ? Math.floor(6 + bass * 20) : Math.floor(1 + mid * 3);
+        for (let i = 0; i < emit; i++) {
+          const a = Math.random() * Math.PI * 2;
+          const speed = (0.6 + Math.random() * 2.2) * dpr * (0.6 + bass * 2);
+          particles.push({
+            x: cx,
+            y: cy,
+            vx: Math.cos(a) * speed,
+            vy: Math.sin(a) * speed,
+            life: 1,
+            hue: (phase * 60 + Math.random() * 60) % 360,
+          });
+        }
+        if (particles.length > 400) particles.splice(0, particles.length - 400);
+
+        ctx.globalCompositeOperation = "lighter";
+        for (let i = particles.length - 1; i >= 0; i--) {
+          const p = particles[i];
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vx *= 0.985;
+          p.vy *= 0.985;
+          p.life -= 0.012;
+          if (p.life <= 0) {
+            particles.splice(i, 1);
+            continue;
+          }
+          const r = 2 * dpr + (1 - p.life) * 3 * dpr;
+          const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, r * 3);
+          grad.addColorStop(0, `hsla(${p.hue}, 100%, 75%, ${p.life})`);
+          grad.addColorStop(1, `hsla(${p.hue}, 100%, 55%, 0)`);
+          ctx.fillStyle = grad;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, r * 3, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        // pulsing core
+        const coreR = baseR * (0.4 + bass * 0.8);
+        const coreGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, coreR);
+        coreGrad.addColorStop(0, `hsla(${(phase * 80) % 360}, 100%, 80%, ${0.5 + bass * 0.5})`);
+        coreGrad.addColorStop(1, "rgba(255,255,255,0)");
+        ctx.fillStyle = coreGrad;
         ctx.beginPath();
-        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.arc(cx, cy, coreR, 0, Math.PI * 2);
         ctx.fill();
       }
 
-      // radial frequency spokes — WMP-flavored
-      const spokes = 64;
-      const smooth = smoothRef.current!;
-      ctx.lineCap = "round";
-      for (let i = 0; i < spokes; i++) {
-        const bin = Math.floor((i / spokes) * freq.length * 0.7);
-        const target = freq[bin] / 255;
-        smooth[bin] = smooth[bin] * 0.7 + target * 0.3;
-        const v = smooth[bin];
-        const angle = (i / spokes) * Math.PI * 2 + phase * 0.3;
-        const inner = baseR * 0.55;
-        const outer = inner + v * baseR * 1.6 + 4;
-        const hue = (i / spokes) * 320 + phase * 40;
-        ctx.strokeStyle = `hsla(${hue}, 95%, ${55 + v * 25}%, ${0.35 + v * 0.6})`;
-        ctx.lineWidth = 2 * dpr + v * 3 * dpr;
+      // Shared waveform ring on plasma
+      if (activeMode === "plasma") {
+        ctx.globalCompositeOperation = "screen";
         ctx.beginPath();
-        ctx.moveTo(cx + Math.cos(angle) * inner, cy + Math.sin(angle) * inner);
-        ctx.lineTo(cx + Math.cos(angle) * outer, cy + Math.sin(angle) * outer);
+        const ringR = baseR * 0.5 + bass * baseR * 0.3;
+        for (let i = 0; i < t.length; i++) {
+          const p = i / t.length;
+          const amp = (t[i] - 128) / 128;
+          const a = p * Math.PI * 2;
+          const rr = ringR + amp * baseR * 0.35;
+          const x = cx + Math.cos(a) * rr;
+          const y = cy + Math.sin(a) * rr;
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.closePath();
+        ctx.strokeStyle = `hsla(${(phase * 60) % 360}, 100%, 80%, 0.85)`;
+        ctx.lineWidth = 1.5 * dpr;
         ctx.stroke();
       }
-
-      // waveform ring
-      ctx.globalCompositeOperation = "screen";
-      ctx.beginPath();
-      const t = time!;
-      const ringR = baseR * 0.5 + bass * baseR * 0.3;
-      for (let i = 0; i < t.length; i++) {
-        const p = i / t.length;
-        const amp = (t[i] - 128) / 128;
-        const a = p * Math.PI * 2;
-        const rr = ringR + amp * baseR * 0.35;
-        const x = cx + Math.cos(a) * rr;
-        const y = cy + Math.sin(a) * rr;
-        if (i === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
-      }
-      ctx.closePath();
-      ctx.strokeStyle = `hsla(${(phase * 60) % 360}, 100%, 80%, 0.85)`;
-      ctx.lineWidth = 1.5 * dpr;
-      ctx.stroke();
     };
 
     rafRef.current = requestAnimationFrame(draw);
@@ -640,6 +784,8 @@ function Visualizer({
 
   return <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" />;
 }
+
+
 
 
 function LibrarySheet({

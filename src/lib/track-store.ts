@@ -5,6 +5,21 @@ const DB_NAME = "pebble-player";
 const DB_VERSION = 1;
 const STORE = "tracks";
 
+/**
+ * Ask the browser to mark this origin's storage as persistent so
+ * IndexedDB won't be evicted under storage pressure. Safe to call often.
+ */
+export async function requestPersistentStorage(): Promise<boolean> {
+  try {
+    if (typeof navigator === "undefined" || !navigator.storage?.persist) return false;
+    const already = navigator.storage.persisted ? await navigator.storage.persisted() : false;
+    if (already) return true;
+    return await navigator.storage.persist();
+  } catch {
+    return false;
+  }
+}
+
 export type StoredTrack = {
   id: string;
   name: string;

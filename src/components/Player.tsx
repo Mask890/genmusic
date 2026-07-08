@@ -6,11 +6,14 @@ import {
   SkipForward,
   Shuffle,
   Repeat,
+  Repeat1,
   Plus,
   Music2,
   X,
   ListMusic,
 } from "lucide-react";
+
+type RepeatMode = "off" | "all" | "one";
 
 type Track = {
   id: string;

@@ -20,9 +20,27 @@ import {
 } from "lucide-react";
 
 type RepeatMode = "off" | "all" | "one";
-type VizMode = "plasma" | "bars" | "wave" | "particles";
-const VIZ_MODES: VizMode[] = ["plasma", "bars", "wave", "particles"];
+type VizMode =
+  | "tiedye"
+  | "tunnel"
+  | "bloom"
+  | "plasma"
+  | "bars"
+  | "wave"
+  | "particles";
+const VIZ_MODES: VizMode[] = [
+  "tiedye",
+  "tunnel",
+  "bloom",
+  "plasma",
+  "bars",
+  "wave",
+  "particles",
+];
 const VIZ_LABELS: Record<VizMode, string> = {
+  tiedye: "Tie-Dye",
+  tunnel: "Tunnel",
+  bloom: "Bloom",
   plasma: "Plasma",
   bars: "Bars",
   wave: "Wave",
@@ -589,7 +607,17 @@ function Visualizer({
 
       // trailing fade — heavier for particle trails, lighter for smear looks
       const fadeAlpha =
-        activeMode === "particles" ? 0.14 : activeMode === "bars" ? 0.35 : 0.18;
+        activeMode === "particles"
+          ? 0.14
+          : activeMode === "bars"
+            ? 0.35
+            : activeMode === "tiedye"
+              ? 0.05
+              : activeMode === "tunnel"
+                ? 0.08
+                : activeMode === "bloom"
+                  ? 0.09
+                  : 0.18;
       ctx.globalCompositeOperation = "source-over";
       ctx.fillStyle = `rgba(10, 8, 20, ${fadeAlpha})`;
       ctx.fillRect(0, 0, w, h);
@@ -623,7 +651,106 @@ function Visualizer({
       const smooth = smoothRef.current!;
       const t = time!;
 
-      if (activeMode === "plasma") {
+      if (activeMode === "tiedye") {
+        // Fluid tie-dye smear: rotating symmetrical soft blobs, layered with
+        // "lighter" so trails accumulate into swirling color fields.
+        ctx.globalCompositeOperation = "lighter";
+        const blobs = 7;
+        const energy = 0.35 + bass * 0.9 + mid * 0.4;
+        for (let i = 0; i < blobs; i++) {
+          const a = (i / blobs) * Math.PI * 2 + phase * (0.4 + (i % 3) * 0.15);
+          const radius = baseR * (0.9 + Math.sin(phase * 1.3 + i) * 0.5) * energy;
+          const x = cx + Math.cos(a) * baseR * (1.1 + Math.sin(phase + i) * 0.6);
+          const y = cy + Math.sin(a * 1.3 + phase * 0.7) * baseR * 1.1;
+          const hue = (i * 47 + phase * 70) % 360;
+          const grad = ctx.createRadialGradient(x, y, 0, x, y, radius);
+          grad.addColorStop(0, `hsla(${hue}, 100%, 65%, ${0.45 + bass * 0.35})`);
+          grad.addColorStop(0.5, `hsla(${(hue + 60) % 360}, 100%, 55%, ${0.18})`);
+          grad.addColorStop(1, `hsla(${(hue + 120) % 360}, 100%, 40%, 0)`);
+          ctx.fillStyle = grad;
+          ctx.beginPath();
+          ctx.arc(x, y, radius, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        // Kaleidoscopic waveform threads for texture
+        ctx.globalCompositeOperation = "screen";
+        const arms = 6;
+        for (let k = 0; k < arms; k++) {
+          ctx.beginPath();
+          const rot = (k / arms) * Math.PI * 2 + phase * 0.5;
+          for (let i = 0; i < t.length; i += 2) {
+            const p = i / t.length;
+            const s = (t[i] - 128) / 128;
+            const rr = baseR * (0.4 + p * 1.8) + s * baseR * 0.6;
+            const a = rot + p * Math.PI * 0.9;
+            const x = cx + Math.cos(a) * rr;
+            const y = cy + Math.sin(a) * rr;
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          }
+          ctx.strokeStyle = `hsla(${(phase * 80 + k * 50) % 360}, 100%, 75%, 0.55)`;
+          ctx.lineWidth = 1.2 * dpr;
+          ctx.stroke();
+        }
+      } else if (activeMode === "tunnel") {
+        // Concentric warping rings — WMP "Ambience" vibe
+        ctx.globalCompositeOperation = "lighter";
+        const rings = 26;
+        const maxR = Math.hypot(w, h) * 0.55;
+        for (let i = rings - 1; i >= 0; i--) {
+          const p = i / rings;
+          const bin = Math.floor(p * freq.length * 0.6);
+          const v = freq[bin] / 255;
+          const warp = 0.35 + bass * 0.8;
+          const r = (p + ((phase * 0.15) % (1 / rings))) * maxR * (1 + v * warp * 0.4);
+          const hue = (p * 300 + phase * 60) % 360;
+          ctx.beginPath();
+          const seg = 64;
+          for (let j = 0; j <= seg; j++) {
+            const a = (j / seg) * Math.PI * 2;
+            const wob = Math.sin(a * 5 + phase * 2 + i) * baseR * 0.15 * (0.4 + v);
+            const rr = r + wob;
+            const x = cx + Math.cos(a) * rr;
+            const y = cy + Math.sin(a) * rr;
+            if (j === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          }
+          ctx.closePath();
+          ctx.strokeStyle = `hsla(${hue}, 100%, ${55 + v * 30}%, ${0.15 + (1 - p) * 0.5})`;
+          ctx.lineWidth = (1 + v * 4) * dpr;
+          ctx.stroke();
+        }
+      } else if (activeMode === "bloom") {
+        // Kaleidoscopic bloom petals expanding with bass
+        ctx.globalCompositeOperation = "lighter";
+        const petals = 12;
+        const bloomR = baseR * (0.8 + bass * 2 + mid * 0.6);
+        for (let i = 0; i < petals; i++) {
+          const a = (i / petals) * Math.PI * 2 + phase * 0.6;
+          const bin = Math.floor((i / petals) * freq.length * 0.5);
+          const v = freq[bin] / 255;
+          const len = bloomR * (0.6 + v * 1.2);
+          const x = cx + Math.cos(a) * len;
+          const y = cy + Math.sin(a) * len;
+          const hue = (i * 30 + phase * 80) % 360;
+          const grad = ctx.createRadialGradient(x, y, 0, x, y, len * 0.9);
+          grad.addColorStop(0, `hsla(${hue}, 100%, 75%, ${0.5 + v * 0.4})`);
+          grad.addColorStop(0.6, `hsla(${(hue + 40) % 360}, 100%, 55%, 0.15)`);
+          grad.addColorStop(1, "rgba(0,0,0,0)");
+          ctx.fillStyle = grad;
+          ctx.beginPath();
+          ctx.ellipse(x, y, len * 0.7, len * 0.35, a, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        // bright core
+        const coreGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, baseR * (0.6 + bass));
+        coreGrad.addColorStop(0, `hsla(${(phase * 100) % 360}, 100%, 85%, ${0.6 + bass * 0.4})`);
+        coreGrad.addColorStop(1, "rgba(0,0,0,0)");
+        ctx.fillStyle = coreGrad;
+        ctx.beginPath();
+        ctx.arc(cx, cy, baseR * (0.6 + bass), 0, Math.PI * 2);
+        ctx.fill();
+      } else if (activeMode === "plasma") {
         // WMP radial spokes + waveform ring (glow orbs removed)
         ctx.globalCompositeOperation = "lighter";
         const spokes = 64;

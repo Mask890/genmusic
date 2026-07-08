@@ -46,7 +46,7 @@ export function Player() {
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
   const [shuffle, setShuffle] = useState(false);
-  const [repeat, setRepeat] = useState(false);
+  const [repeat, setRepeat] = useState<RepeatMode>("off");
   const [libraryOpen, setLibraryOpen] = useState(false);
   const [levels, setLevels] = useState<number[]>(() => Array(24).fill(0));
 

@@ -482,8 +482,8 @@ function Visualizer({
     const ro = new ResizeObserver(resize);
     ro.observe(canvas);
 
-    let freq: Uint8Array | null = null;
-    let time: Uint8Array | null = null;
+    let freq: Uint8Array<ArrayBuffer> | null = null;
+    let time: Uint8Array<ArrayBuffer> | null = null;
 
     const draw = () => {
       rafRef.current = requestAnimationFrame(draw);

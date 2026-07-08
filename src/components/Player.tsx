@@ -454,25 +454,149 @@ export function Player() {
   );
 }
 
-function Visualizer({ levels }: { levels: number[] }) {
-  // WMP-style symmetric frequency bars
-  return (
-    <div className="absolute inset-0 flex items-end justify-center gap-[3px] px-6 pb-8">
-      {levels.map((v, i) => (
-        <span
-          key={i}
-          className="w-[4px] rounded-t-full"
-          style={{
-            height: `${Math.max(4, v * 140)}px`,
-            background: `linear-gradient(to top, var(--primary), var(--accent))`,
-            opacity: 0.35 + v * 0.65,
-            transition: "height 80ms linear",
-          }}
-        />
-      ))}
-    </div>
-  );
+function Visualizer({
+  analyserRef,
+  playing,
+}: {
+  analyserRef: React.RefObject<AnalyserNode | null>;
+  playing: boolean;
+}) {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const rafRef = useRef<number | null>(null);
+  const phaseRef = useRef(0);
+  const smoothRef = useRef<Float32Array | null>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d", { alpha: true });
+    if (!ctx) return;
+
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const resize = () => {
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+    };
+    resize();
+    const ro = new ResizeObserver(resize);
+    ro.observe(canvas);
+
+    let freq: Uint8Array | null = null;
+    let time: Uint8Array | null = null;
+
+    const draw = () => {
+      rafRef.current = requestAnimationFrame(draw);
+      const analyser = analyserRef.current;
+      const w = canvas.width;
+      const h = canvas.height;
+
+      // trailing fade for tie-dye smear
+      ctx.globalCompositeOperation = "source-over";
+      ctx.fillStyle = "rgba(10, 8, 20, 0.18)";
+      ctx.fillRect(0, 0, w, h);
+
+      if (!analyser) return;
+      if (!freq || freq.length !== analyser.frequencyBinCount) {
+        freq = new Uint8Array(analyser.frequencyBinCount);
+        time = new Uint8Array(analyser.fftSize);
+        smoothRef.current = new Float32Array(analyser.frequencyBinCount);
+      }
+      analyser.getByteFrequencyData(freq);
+      analyser.getByteTimeDomainData(time!);
+
+      // energy metrics
+      let bass = 0;
+      const bassEnd = Math.floor(freq.length * 0.12);
+      for (let i = 0; i < bassEnd; i++) bass += freq[i];
+      bass = bass / bassEnd / 255;
+
+      let mid = 0;
+      for (let i = bassEnd; i < freq.length * 0.5; i++) mid += freq[i];
+      mid = mid / (freq.length * 0.5 - bassEnd) / 255;
+
+      phaseRef.current += 0.006 + bass * 0.04;
+      const phase = phaseRef.current;
+
+      const cx = w / 2;
+      const cy = h / 2;
+      const baseR = Math.min(w, h) * 0.18;
+
+      // additive plasma blobs (tie-dye)
+      ctx.globalCompositeOperation = "lighter";
+      const colors = [
+        [255, 90, 200], // pink
+        [120, 200, 255], // cyan
+        [180, 130, 255], // violet
+        [255, 180, 120], // amber
+      ];
+      for (let i = 0; i < 4; i++) {
+        const a = phase * (0.6 + i * 0.15) + (i * Math.PI) / 2;
+        const r = baseR * (1.1 + Math.sin(phase * 1.3 + i) * 0.35) + bass * baseR * 1.8;
+        const x = cx + Math.cos(a) * baseR * (0.5 + mid * 0.9);
+        const y = cy + Math.sin(a * 1.1) * baseR * (0.5 + mid * 0.9);
+        const grad = ctx.createRadialGradient(x, y, 0, x, y, r);
+        const [cr, cg, cb] = colors[i];
+        grad.addColorStop(0, `rgba(${cr},${cg},${cb},${0.55 + bass * 0.4})`);
+        grad.addColorStop(1, `rgba(${cr},${cg},${cb},0)`);
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // radial frequency spokes — WMP-flavored
+      const spokes = 64;
+      const smooth = smoothRef.current!;
+      ctx.lineCap = "round";
+      for (let i = 0; i < spokes; i++) {
+        const bin = Math.floor((i / spokes) * freq.length * 0.7);
+        const target = freq[bin] / 255;
+        smooth[bin] = smooth[bin] * 0.7 + target * 0.3;
+        const v = smooth[bin];
+        const angle = (i / spokes) * Math.PI * 2 + phase * 0.3;
+        const inner = baseR * 0.55;
+        const outer = inner + v * baseR * 1.6 + 4;
+        const hue = (i / spokes) * 320 + phase * 40;
+        ctx.strokeStyle = `hsla(${hue}, 95%, ${55 + v * 25}%, ${0.35 + v * 0.6})`;
+        ctx.lineWidth = 2 * dpr + v * 3 * dpr;
+        ctx.beginPath();
+        ctx.moveTo(cx + Math.cos(angle) * inner, cy + Math.sin(angle) * inner);
+        ctx.lineTo(cx + Math.cos(angle) * outer, cy + Math.sin(angle) * outer);
+        ctx.stroke();
+      }
+
+      // waveform ring
+      ctx.globalCompositeOperation = "screen";
+      ctx.beginPath();
+      const t = time!;
+      const ringR = baseR * 0.5 + bass * baseR * 0.3;
+      for (let i = 0; i < t.length; i++) {
+        const p = i / t.length;
+        const amp = (t[i] - 128) / 128;
+        const a = p * Math.PI * 2;
+        const rr = ringR + amp * baseR * 0.35;
+        const x = cx + Math.cos(a) * rr;
+        const y = cy + Math.sin(a) * rr;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+      ctx.strokeStyle = `hsla(${(phase * 60) % 360}, 100%, 80%, 0.85)`;
+      ctx.lineWidth = 1.5 * dpr;
+      ctx.stroke();
+    };
+
+    rafRef.current = requestAnimationFrame(draw);
+    return () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      ro.disconnect();
+    };
+  }, [analyserRef, playing]);
+
+  return <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" />;
 }
+
 
 function LibrarySheet({
   tracks,

@@ -380,13 +380,16 @@ export function Player() {
             </button>
           </div>
           <button
-            onClick={() => setRepeat((r) => !r)}
-            aria-label="Repeat"
+            onClick={() =>
+              setRepeat((r) => (r === "off" ? "all" : r === "all" ? "one" : "off"))
+            }
+            aria-label={`Repeat: ${repeat}`}
+            title={`Repeat: ${repeat}`}
             className={`grid size-9 place-items-center rounded-full transition ${
-              repeat ? "text-accent" : "text-muted-foreground hover:text-foreground"
+              repeat !== "off" ? "text-accent" : "text-muted-foreground hover:text-foreground"
             }`}
           >
-            <Repeat className="size-4" />
+            {repeat === "one" ? <Repeat1 className="size-4" /> : <Repeat className="size-4" />}
           </button>
         </div>
       </div>

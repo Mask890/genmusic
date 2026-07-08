@@ -15,6 +15,14 @@ import {
 } from "lucide-react";
 
 type RepeatMode = "off" | "all" | "one";
+type VizMode = "plasma" | "bars" | "wave" | "particles";
+const VIZ_MODES: VizMode[] = ["plasma", "bars", "wave", "particles"];
+const VIZ_LABELS: Record<VizMode, string> = {
+  plasma: "Plasma",
+  bars: "Bars",
+  wave: "Wave",
+  particles: "Particles",
+};
 
 type Track = {
   id: string;

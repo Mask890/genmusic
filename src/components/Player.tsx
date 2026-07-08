@@ -49,6 +49,7 @@ export function Player() {
   const [repeat, setRepeat] = useState<RepeatMode>("off");
   const [libraryOpen, setLibraryOpen] = useState(false);
   const [levels, setLevels] = useState<number[]>(() => Array(24).fill(0));
+  const [vizMode, setVizMode] = useState<VizMode>("plasma");
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);

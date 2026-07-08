@@ -228,9 +228,11 @@ export function Player() {
         }}
         onLoadedMetadata={(e) => setDuration(e.currentTarget.duration || 0)}
         onEnded={() => {
-          if (repeat && audioRef.current) {
+          if (repeat === "one" && audioRef.current) {
             audioRef.current.currentTime = 0;
             audioRef.current.play();
+          } else if (repeat === "off" && current === tracks.length - 1) {
+            setPlaying(false);
           } else {
             nextTrack();
           }

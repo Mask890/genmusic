@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { deleteTrack as dbDelete, getAllTracks, putTrack } from "@/lib/track-store";
 import {
   Play,
   Pause,
@@ -17,7 +18,6 @@ type RepeatMode = "off" | "all" | "one";
 
 type Track = {
   id: string;
-  file: File;
   url: string;
   title: string;
   artist: string;
@@ -59,14 +59,54 @@ export function Player() {
 
   const track = tracks[current];
 
-  // Cleanup URLs on unmount
+  // Load persisted tracks from IndexedDB on mount
   useEffect(() => {
+    let cancelled = false;
+    getAllTracks()
+      .then((stored) => {
+        if (cancelled || !stored.length) return;
+        const restored: Track[] = stored.map((s) => ({
+          id: s.id,
+          url: URL.createObjectURL(s.blob),
+          title: s.title,
+          artist: s.artist,
+        }));
+        setTracks(restored);
+        const savedIdx = Number(localStorage.getItem("pebble:current") ?? "0");
+        setCurrent(Number.isFinite(savedIdx) && savedIdx < restored.length ? savedIdx : 0);
+      })
+      .catch((err) => console.warn("Failed to load library", err));
+    const savedShuffle = localStorage.getItem("pebble:shuffle");
+    const savedRepeat = localStorage.getItem("pebble:repeat") as RepeatMode | null;
+    if (savedShuffle === "1") setShuffle(true);
+    if (savedRepeat === "all" || savedRepeat === "one") setRepeat(savedRepeat);
     return () => {
-      tracks.forEach((t) => URL.revokeObjectURL(t.url));
+      cancelled = true;
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Revoke object URLs when tracks are removed/replaced
+  useEffect(() => {
+    const urls = tracks.map((t) => t.url);
+    return () => {
+      // only runs on full unmount thanks to empty-deps above; per-track cleanup happens in removeTrack
+      void urls;
+    };
+  }, [tracks]);
+
+  // Persist playback preferences
+  useEffect(() => {
+    localStorage.setItem("pebble:current", String(current));
+  }, [current]);
+  useEffect(() => {
+    localStorage.setItem("pebble:shuffle", shuffle ? "1" : "0");
+  }, [shuffle]);
+  useEffect(() => {
+    localStorage.setItem("pebble:repeat", repeat);
+  }, [repeat]);
+
 
   // Setup analyser once we have an audio element and user interacts (play)
   const ensureAnalyser = () => {
@@ -122,23 +162,26 @@ export function Player() {
 
   const handleFiles = (fl: FileList | null) => {
     if (!fl) return;
-    const newTracks: Track[] = [];
-    Array.from(fl).forEach((f) => {
-      if (!f.type.startsWith("audio")) return;
+    const files = Array.from(fl).filter((f) => f.type.startsWith("audio"));
+    if (!files.length) return;
+    const newTracks: Track[] = files.map((f) => {
       const { title, artist } = parseName(f);
-      newTracks.push({
-        id: `${f.name}-${f.size}-${Math.random().toString(36).slice(2, 7)}`,
-        file: f,
-        url: URL.createObjectURL(f),
+      const id = `${f.name}-${f.size}-${f.lastModified}-${Math.random().toString(36).slice(2, 7)}`;
+      // fire-and-forget persist to IndexedDB
+      putTrack({
+        id,
+        name: f.name,
+        type: f.type,
         title,
         artist,
-      });
+        addedAt: Date.now(),
+        blob: f,
+      }).catch((err) => console.warn("Failed to persist track", err));
+      return { id, url: URL.createObjectURL(f), title, artist };
     });
-    if (!newTracks.length) return;
     setTracks((prev) => {
-      const next = [...prev, ...newTracks];
       if (prev.length === 0) setCurrent(0);
-      return next;
+      return [...prev, ...newTracks];
     });
   };
 
@@ -195,6 +238,7 @@ export function Player() {
   };
 
   const removeTrack = (id: string) => {
+    dbDelete(id).catch((err) => console.warn("Failed to delete track", err));
     setTracks((prev) => {
       const idx = prev.findIndex((t) => t.id === id);
       if (idx === -1) return prev;

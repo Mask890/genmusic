@@ -1,0 +1,35 @@
+{
+  "name": "Pebble",
+  "short_name": "Pebble",
+  "description": "A cute, ad-free mobile music player for local MP3s with a live visualizer.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1a1424",
+  "theme_color": "#1a1424",
+  "orientation": "portrait",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/pebble-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/pebble-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/pebble-icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/pebble-icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

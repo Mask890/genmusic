@@ -652,44 +652,26 @@ function Visualizer({
       const t = time!;
 
       if (activeMode === "tiedye") {
-        // Fluid tie-dye smear: rotating symmetrical soft blobs, layered with
-        // "lighter" so trails accumulate into swirling color fields.
-        ctx.globalCompositeOperation = "lighter";
-        const blobs = 7;
-        const energy = 0.35 + bass * 0.9 + mid * 0.4;
-        for (let i = 0; i < blobs; i++) {
-          const a = (i / blobs) * Math.PI * 2 + phase * (0.4 + (i % 3) * 0.15);
-          const radius = baseR * (0.9 + Math.sin(phase * 1.3 + i) * 0.5) * energy;
-          const x = cx + Math.cos(a) * baseR * (1.1 + Math.sin(phase + i) * 0.6);
-          const y = cy + Math.sin(a * 1.3 + phase * 0.7) * baseR * 1.1;
-          const hue = (i * 47 + phase * 70) % 360;
-          const grad = ctx.createRadialGradient(x, y, 0, x, y, radius);
-          grad.addColorStop(0, `hsla(${hue}, 100%, 65%, ${0.45 + bass * 0.35})`);
-          grad.addColorStop(0.5, `hsla(${(hue + 60) % 360}, 100%, 55%, ${0.18})`);
-          grad.addColorStop(1, `hsla(${(hue + 120) % 360}, 100%, 40%, 0)`);
-          ctx.fillStyle = grad;
-          ctx.beginPath();
-          ctx.arc(x, y, radius, 0, Math.PI * 2);
-          ctx.fill();
-        }
-        // Kaleidoscopic waveform threads for texture
+        // Kaleidoscopic waveform threads — no blob circles, just flowing
+        // radial lines that smear into tie-dye patterns via the light fade.
         ctx.globalCompositeOperation = "screen";
-        const arms = 6;
+        const arms = 8;
+        const energy = 0.35 + bass * 0.9 + mid * 0.4;
         for (let k = 0; k < arms; k++) {
           ctx.beginPath();
           const rot = (k / arms) * Math.PI * 2 + phase * 0.5;
           for (let i = 0; i < t.length; i += 2) {
             const p = i / t.length;
             const s = (t[i] - 128) / 128;
-            const rr = baseR * (0.4 + p * 1.8) + s * baseR * 0.6;
-            const a = rot + p * Math.PI * 0.9;
+            const rr = baseR * (0.5 + p * 2.0 + energy * 0.4) + s * baseR * 0.7;
+            const a = rot + p * Math.PI * 1.1 + Math.sin(phase + p * 3) * 0.2;
             const x = cx + Math.cos(a) * rr;
             const y = cy + Math.sin(a) * rr;
             if (i === 0) ctx.moveTo(x, y);
             else ctx.lineTo(x, y);
           }
-          ctx.strokeStyle = `hsla(${(phase * 80 + k * 50) % 360}, 100%, 75%, 0.55)`;
-          ctx.lineWidth = 1.2 * dpr;
+          ctx.strokeStyle = `hsla(${(phase * 80 + k * 45) % 360}, 100%, ${70 + mid * 25}%, ${0.5 + bass * 0.25})`;
+          ctx.lineWidth = (1.4 + bass * 1.5) * dpr;
           ctx.stroke();
         }
       } else if (activeMode === "tunnel") {

@@ -278,6 +278,51 @@ export function Player() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [track?.id]);
 
+  // Update Media Session metadata and action handlers for lock-screen controls.
+  useEffect(() => {
+    if (typeof navigator === "undefined" || !("mediaSession" in navigator)) return;
+
+    const ms = navigator.mediaSession;
+    if (track) {
+      ms.metadata = new MediaMetadata({
+        title: track.title,
+        artist: track.artist,
+        album: "Pebble",
+        artwork: [
+          { src: "/pebble-icon-192.png", sizes: "192x192", type: "image/png" },
+          { src: "/pebble-icon-512.png", sizes: "512x512", type: "image/png" },
+        ],
+      });
+    } else {
+      ms.metadata = null;
+    }
+
+    ms.setActionHandler("play", () => togglePlay());
+    ms.setActionHandler("pause", () => togglePlay());
+    ms.setActionHandler("nexttrack", () => nextTrack());
+    ms.setActionHandler("previoustrack", () => prevTrack());
+    ms.setActionHandler("seekbackward", (details) => {
+      if (!audioRef.current) return;
+      audioRef.current.currentTime = Math.max(
+        0,
+        audioRef.current.currentTime - (details.seekOffset ?? 10),
+      );
+    });
+    ms.setActionHandler("seekforward", (details) => {
+      if (!audioRef.current) return;
+      audioRef.current.currentTime = Math.min(
+        audioRef.current.duration || Infinity,
+        audioRef.current.currentTime + (details.seekOffset ?? 10),
+      );
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [track?.id]);
+
+  useEffect(() => {
+    if (typeof navigator === "undefined" || !("mediaSession" in navigator)) return;
+    navigator.mediaSession.playbackState = playing ? "playing" : "paused";
+  }, [playing]);
+
   const seek = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!audioRef.current) return;
     const v = parseFloat(e.target.value);

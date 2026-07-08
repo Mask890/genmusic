@@ -624,28 +624,8 @@ function Visualizer({
       const t = time!;
 
       if (activeMode === "plasma") {
-        // Tie-dye plasma + WMP radial spokes + waveform ring
+        // WMP radial spokes + waveform ring (glow orbs removed)
         ctx.globalCompositeOperation = "lighter";
-        const colors = [
-          [255, 90, 200],
-          [120, 200, 255],
-          [180, 130, 255],
-          [255, 180, 120],
-        ];
-        for (let i = 0; i < 4; i++) {
-          const a = phase * (0.6 + i * 0.15) + (i * Math.PI) / 2;
-          const r = baseR * (1.1 + Math.sin(phase * 1.3 + i) * 0.35) + bass * baseR * 1.8;
-          const x = cx + Math.cos(a) * baseR * (0.5 + mid * 0.9);
-          const y = cy + Math.sin(a * 1.1) * baseR * (0.5 + mid * 0.9);
-          const grad = ctx.createRadialGradient(x, y, 0, x, y, r);
-          const [cr, cg, cb] = colors[i];
-          grad.addColorStop(0, `rgba(${cr},${cg},${cb},${0.55 + bass * 0.4})`);
-          grad.addColorStop(1, `rgba(${cr},${cg},${cb},0)`);
-          ctx.fillStyle = grad;
-          ctx.beginPath();
-          ctx.arc(x, y, r, 0, Math.PI * 2);
-          ctx.fill();
-        }
         const spokes = 64;
         ctx.lineCap = "round";
         for (let i = 0; i < spokes; i++) {

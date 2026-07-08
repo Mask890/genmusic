@@ -343,7 +343,7 @@ export function Player() {
           <div className="animate-pulse-ring absolute -inset-4 rounded-[60px] bg-primary/20 blur-xl" />
           <div className="relative grid size-56 place-items-center overflow-hidden rounded-[48px] bg-surface shadow-2xl ring-1 ring-white/10">
             {/* Live visualizer canvas replaces the placeholder art */}
-            <Visualizer analyserRef={analyserRef} playing={playing} />
+            <Visualizer analyserRef={analyserRef} playing={playing} mode={vizMode} />
             {!track && (
               <div className="absolute inset-0 grid place-items-center text-center">
                 <div className="flex flex-col items-center gap-2 text-muted-foreground">
@@ -354,8 +354,20 @@ export function Player() {
                 </div>
               </div>
             )}
+            <button
+              onClick={() =>
+                setVizMode(
+                  (m) => VIZ_MODES[(VIZ_MODES.indexOf(m) + 1) % VIZ_MODES.length],
+                )
+              }
+              aria-label={`Visualizer style: ${VIZ_LABELS[vizMode]}`}
+              className="glass absolute bottom-2 right-2 rounded-full px-2.5 py-1 font-mono text-[9px] uppercase tracking-widest text-foreground/80 transition hover:text-foreground"
+            >
+              {VIZ_LABELS[vizMode]}
+            </button>
           </div>
         </div>
+
 
         <div className="animate-slide-up mt-10 max-w-full text-center [animation-delay:120ms]">
           <h1 className="truncate text-balance text-2xl font-bold tracking-tight">

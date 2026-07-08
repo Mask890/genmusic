@@ -44,16 +44,15 @@ export async function registerPWA(): Promise<void> {
   }
 
   try {
-    const { registerSW } = await import("workbox-window");
-    const updateSW = registerSW(SW_PATH, {
-      onNeedRefresh() {
-        // Auto-update on next navigation; could be surfaced to the user later.
-        updateSW(true);
-      },
-      onOfflineReady() {
-        console.log("Pebble is ready to work offline.");
-      },
+    const { Workbox } = await import("workbox-window");
+    const wb = new Workbox(SW_PATH);
+    wb.addEventListener("installed", (event) => {
+      if (event.isUpdate) {
+        // Skip waiting so the update activates on the next navigation.
+        wb.messageSkipWaiting();
+      }
     });
+    await wb.register();
   } catch (err) {
     console.warn("Failed to register Pebble service worker:", err);
   }

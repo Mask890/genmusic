@@ -89,6 +89,8 @@ export function Player() {
     const savedRepeat = localStorage.getItem("pebble:repeat") as RepeatMode | null;
     if (savedShuffle === "1") setShuffle(true);
     if (savedRepeat === "all" || savedRepeat === "one") setRepeat(savedRepeat);
+    const savedViz = localStorage.getItem("pebble:viz") as VizMode | null;
+    if (savedViz && VIZ_MODES.includes(savedViz)) setVizMode(savedViz);
     return () => {
       cancelled = true;
       if (rafRef.current) cancelAnimationFrame(rafRef.current);

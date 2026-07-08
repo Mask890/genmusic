@@ -76,6 +76,8 @@ export function Player() {
   // Load persisted tracks from IndexedDB on mount
   useEffect(() => {
     let cancelled = false;
+    // Ask browser to keep this origin's storage durable (no eviction).
+    requestPersistentStorage().catch(() => {});
     getAllTracks()
       .then((stored) => {
         if (cancelled || !stored.length) return;

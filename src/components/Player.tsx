@@ -18,7 +18,6 @@ type RepeatMode = "off" | "all" | "one";
 
 type Track = {
   id: string;
-  file: File;
   url: string;
   title: string;
   artist: string;

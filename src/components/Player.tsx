@@ -607,7 +607,17 @@ function Visualizer({
 
       // trailing fade — heavier for particle trails, lighter for smear looks
       const fadeAlpha =
-        activeMode === "particles" ? 0.14 : activeMode === "bars" ? 0.35 : 0.18;
+        activeMode === "particles"
+          ? 0.14
+          : activeMode === "bars"
+            ? 0.35
+            : activeMode === "tiedye"
+              ? 0.05
+              : activeMode === "tunnel"
+                ? 0.08
+                : activeMode === "bloom"
+                  ? 0.09
+                  : 0.18;
       ctx.globalCompositeOperation = "source-over";
       ctx.fillStyle = `rgba(10, 8, 20, ${fadeAlpha})`;
       ctx.fillRect(0, 0, w, h);

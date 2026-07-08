@@ -20,9 +20,27 @@ import {
 } from "lucide-react";
 
 type RepeatMode = "off" | "all" | "one";
-type VizMode = "plasma" | "bars" | "wave" | "particles";
-const VIZ_MODES: VizMode[] = ["plasma", "bars", "wave", "particles"];
+type VizMode =
+  | "tiedye"
+  | "tunnel"
+  | "bloom"
+  | "plasma"
+  | "bars"
+  | "wave"
+  | "particles";
+const VIZ_MODES: VizMode[] = [
+  "tiedye",
+  "tunnel",
+  "bloom",
+  "plasma",
+  "bars",
+  "wave",
+  "particles",
+];
 const VIZ_LABELS: Record<VizMode, string> = {
+  tiedye: "Tie-Dye",
+  tunnel: "Tunnel",
+  bloom: "Bloom",
   plasma: "Plasma",
   bars: "Bars",
   wave: "Wave",

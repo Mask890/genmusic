@@ -77,8 +77,8 @@ export function Player() {
         (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
       const ctx = new Ctx();
       const analyser = ctx.createAnalyser();
-      analyser.fftSize = 128;
-      analyser.smoothingTimeConstant = 0.78;
+      analyser.fftSize = 1024;
+      analyser.smoothingTimeConstant = 0.82;
       const src = ctx.createMediaElementSource(audioRef.current);
       src.connect(analyser);
       analyser.connect(ctx.destination);

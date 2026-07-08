@@ -122,23 +122,26 @@ export function Player() {
 
   const handleFiles = (fl: FileList | null) => {
     if (!fl) return;
-    const newTracks: Track[] = [];
-    Array.from(fl).forEach((f) => {
-      if (!f.type.startsWith("audio")) return;
+    const files = Array.from(fl).filter((f) => f.type.startsWith("audio"));
+    if (!files.length) return;
+    const newTracks: Track[] = files.map((f) => {
       const { title, artist } = parseName(f);
-      newTracks.push({
-        id: `${f.name}-${f.size}-${Math.random().toString(36).slice(2, 7)}`,
-        file: f,
-        url: URL.createObjectURL(f),
+      const id = `${f.name}-${f.size}-${f.lastModified}-${Math.random().toString(36).slice(2, 7)}`;
+      // fire-and-forget persist to IndexedDB
+      putTrack({
+        id,
+        name: f.name,
+        type: f.type,
         title,
         artist,
-      });
+        addedAt: Date.now(),
+        blob: f,
+      }).catch((err) => console.warn("Failed to persist track", err));
+      return { id, url: URL.createObjectURL(f), title, artist };
     });
-    if (!newTracks.length) return;
     setTracks((prev) => {
-      const next = [...prev, ...newTracks];
       if (prev.length === 0) setCurrent(0);
-      return next;
+      return [...prev, ...newTracks];
     });
   };
 

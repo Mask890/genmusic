@@ -1,50 +1,67 @@
-# Mobile App Plan for Pebble
+# Plan: Pebble Feature Documentation
 
 ## Goal
-Make the Pebble MP3 player installable on phones, work offline, and eventually support native mobile features like background audio, lock-screen media controls, and push notifications.
+Write a single markdown file that describes the Pebble local MP3 player and every feature implemented to date.
 
-## Recommended Approach
+## Proposed file
+`README.md` in the project root (or `docs/FEATURES.md` if you prefer a dedicated docs folder). I’ll default to `README.md` so it surfaces on the project home page.
 
-### Phase 1: Progressive Web App (PWA)
-This gives you a home-screen installable app and offline playback without app store accounts. It is the fastest path and shares 100% of the existing code.
+## What the doc will cover
+Based on the current codebase, the file will include:
 
-**What we'll build:**
-1. Add a web app manifest (`public/manifest.webmanifest`) with app name, icons, theme colors, and `display: standalone`.
-2. Generate app icons for common sizes and place them in `public/`.
-3. Add required `<head>` tags in `src/routes/__root.tsx` (manifest link, theme-color, apple-touch-icon).
-4. Add a guarded service worker using `vite-plugin-pwa` with `generateSW` so the app shell works offline.
-5. Ensure uploaded MP3s stored in IndexedDB continue to be available offline (they already are local; we just need the app shell cached).
-6. Use the Media Session API so lock-screen metadata (title, artwork, play/pause) works where the browser supports it.
+1. **Overview** — what Pebble is, target audience, and core value proposition (local, ad-free, visual-first mobile player).
+2. **Tech stack** — TanStack Start, React 19, Tailwind CSS v4, Vite, PWA via vite-plugin-pwa, IndexedDB, Web Audio API, Media Session API.
+3. **Playback features**
+   - Local MP3/audio file import via file picker (multiple files)
+   - Persistent library stored in IndexedDB
+   - Persistent storage request to resist browser eviction
+   - Play / pause, previous / next
+   - Seekable progress bar with current/total time
+   - Shuffle
+   - Repeat modes: off, all, one
+   - Auto-advance and repeat-one looping
+   - Resume last track index, shuffle, repeat, and visualizer preference across sessions
+4. **Library management**
+   - Add tracks from device
+   - Delete tracks from library and storage
+   - Track count summary
+   - Parse "Artist - Title" filenames automatically
+5. **Visualizers** — seven canvas-based modes driven by the audio analyser:
+   - Plasma
+   - Tie-Dye
+   - Tunnel
+   - Bloom
+   - Bars
+   - Wave
+   - Particles
+   - Cycle button on the cover art
+6. **UI / design**
+   - Mobile-first, single-screen layout
+   - Ambient background blobs that react to music intensity
+   - Glassmorphism controls and library sheet
+   - Custom animations (float, blob morph, pulse ring, slide-up)
+   - Dark theme with semantic color tokens
+7. **Mobile / PWA features**
+   - Web App Manifest with standalone display, theme colors, icons, maskable icons
+   - Service worker for offline app-shell caching
+   - Guarded registration (disabled in dev/preview/iframe)
+   - Apple mobile-web-app meta tags and touch icon
+   - Media Session API for lock-screen metadata and transport controls
+8. **Offline behavior**
+   - App shell works offline thanks to the service worker
+   - Music files persist in IndexedDB and survive reloads
+9. **Security / privacy**
+   - No accounts, no uploads to servers, no ads or tracking
+   - All audio data stays on the device
+10. **Future roadmap** (noted as planned, not implemented)
+    - Capacitor native wrapper for App Store / Play Store
+    - Background audio and lock-screen media controls on iOS/Android
+    - Push notifications
 
-**Out of scope for Phase 1:**
-- True background audio on iOS (Safari pauses PWAs in the background).
-- Push notifications on iOS (requires a native app).
-- App Store / Play Store distribution.
+## Format
+Clean markdown with a table of contents, feature sections, and a short “Getting Started” note. No emojis, concise, user-readable.
 
-### Phase 2: Native App Wrapper with Capacitor
-Wrap the PWA in a native shell so you can publish to the App Store and Google Play and unlock full native capabilities.
+## Deliverable
+One new markdown file; no code changes required.
 
-**What we'll build:**
-1. Add Capacitor to the project with iOS and Android platforms.
-2. Configure the native app metadata (bundle ID, app name, splash screen, icons).
-3. Add the Capacitor background-audio plugin so music keeps playing when the app is backgrounded or the screen is locked.
-4. Add lock-screen / notification media controls.
-5. Set up push notifications (Firebase Cloud Messaging for Android; APNS for iOS).
-6. Document the build and publish steps for both stores.
-
-**What you will need to provide:**
-- Apple Developer account ($99/year) for iOS App Store.
-- Google Play Developer account ($25 one-time) for Play Store.
-- macOS with Xcode to build the iOS app.
-- Android Studio to build the Android app.
-- Firebase project if you want push notifications.
-
-## Why This Order?
-- The PWA can be shipped immediately to anyone with a browser.
-- It validates the mobile UX before investing in native builds.
-- Capacitor reuses the same web code, so Phase 2 is additive, not a rewrite.
-
-## Suggested First Step
-Start with Phase 1 (PWA) now. It gives you an installable, offline-capable music app today. Phase 2 can be added once you confirm the mobile experience feels right and you have the store accounts ready.
-
-Would you like me to implement Phase 1 (PWA with offline support) first?
+Would you like me to use a different filename or location?

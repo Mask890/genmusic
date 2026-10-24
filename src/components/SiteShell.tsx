@@ -18,13 +18,13 @@ export function SiteShell({ children }: { children: ReactNode }) {
     <main>{children}</main>
     <footer className="border-t border-border pt-8">
       <div className="site-container">
-        <div className="grid gap-8 pb-8 sm:grid-cols-[1fr_auto] sm:gap-12">
+        <div className="grid gap-8 pb-8 sm:grid-cols-[1fr_1fr] sm:gap-12">
           <div>
             <Link to="/" className="inline-flex items-center gap-2.5 text-3xl font-bold"><AudioLines className="size-8 text-primary" />pebble</Link>
             <p className="mt-4 text-sm text-muted-foreground">Pebble. Your music, on your terms.</p>
             <p className="mt-2 text-xs text-muted-foreground">No ads. Just music.</p>
           </div>
-          <nav aria-label="Footer navigation" className="grid grid-cols-2 content-start gap-x-10 gap-y-3 text-sm text-muted-foreground">
+          <nav aria-label="Footer navigation" className="grid grid-cols-2 content-start justify-items-start gap-x-10 gap-y-3 text-sm text-muted-foreground">
             <Link to="/downloads" className="hover:text-primary">Downloads</Link>
             <Link to="/updates" className="hover:text-primary">Software updates</Link>
             <Link to="/demo" className="hover:text-primary">Live demo</Link>

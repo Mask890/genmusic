@@ -1,5 +1,6 @@
 # Pebble downloads
 
+- [ ] Add unified legal center with LoveRiviera LLC identity and bottom-footer links plus inactive Contact button; verify navigation and layout.
 - [x] Landing page, downloads, updates, and existing visualizer demo.
 - [x] Standalone player entry and Android / Windows / macOS build workflow.
 - [x] Release-source setup documentation and honest unavailable-download states.

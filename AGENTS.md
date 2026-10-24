@@ -15,3 +15,4 @@
 - Build installers on matching GitHub runners and publish only after all platform jobs succeed; Android signing credentials must stay stable across upgrades.
 - Android test builds are manual, debug-signed Actions artifacts with a separate app identity; never publish them to the production Releases feed, so tests cannot replace user downloads or libraries.
 - Keep legal notices in one /legal content route with section anchors for footer deep links; these anchors navigate within a single unified document rather than replace separate content routes.
+- Keep public support guidance in /support with topic anchors; distinguish maintainer signing instructions from visitor help and never collect signing credentials on the public site.

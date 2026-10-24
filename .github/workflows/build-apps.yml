@@ -45,6 +45,7 @@ jobs:
             native-artifacts/Pebble-*-Mac.dmg
           if-no-files-found: error
   android:
+    if: vars.ANDROID_RELEASE == 'true'
     runs-on: ubuntu-latest
     env:
       ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
@@ -86,6 +87,7 @@ jobs:
           if-no-files-found: error
   release:
     needs: [desktop, android]
+    if: always() && needs.desktop.result == 'success' && needs.android.result != 'failure'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -99,4 +101,6 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "v${APP_VERSION}" release-files/*.exe release-files/*.dmg release-files/*.apk --target "${GITHUB_SHA}" --title "Pebble ${APP_VERSION}" --notes "Pebble ${APP_VERSION}: local playback and seven audio-reactive visualizers. Desktop installers are unsigned and may trigger security warnings. Download and install to update; keep your Android signing key unchanged."
+          shopt -s nullglob
+          files=(release-files/*.exe release-files/*.dmg release-files/*.apk)
+          gh release create "v${APP_VERSION}" "${files[@]}" --target "${GITHUB_SHA}" --title "Pebble ${APP_VERSION}" --notes "Pebble ${APP_VERSION}: local playback and seven audio-reactive visualizers. Desktop installers are unsigned and may trigger security warnings. Download and install to update."

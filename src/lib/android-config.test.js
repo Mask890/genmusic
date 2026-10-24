@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { androidConfig } from '../../..//capacitor.config';
+import { androidConfig } from '../../capacitor.config';
 
 describe('Android test separation', () => {
   test('test APK has its own identity and offline renderer', () => {

@@ -21,11 +21,15 @@ jobs:
           distribution: temurin
           java-version: 21
       - uses: android-actions/setup-android@v3
+      - name: Install Android 36 tools
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.4.4
       - run: bun install --frozen-lockfile
       - run: bunx vite build --config native/vite.config.ts
+      - name: Verify offline player output
+        run: test -f dist-native/index.html
       - run: bunx cap add android && bunx cap sync android
       - name: Build installable test APK
         working-directory: android

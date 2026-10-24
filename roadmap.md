@@ -1,5 +1,8 @@
 # Pebble downloads
 
+- [x] Set up manual Android test APK workflow without release-signing secrets, isolated from production downloads.
+- [ ] Generate and device-test the Android test APK: requires a GitHub Actions run and an Android device.
+
 - [x] Add unified legal center with LoveRiviera LLC identity and bottom-footer links plus inactive Contact button; verify navigation and layout.
 - [x] Landing page, downloads, updates, and existing visualizer demo.
 - [x] Standalone player entry and Android / Windows / macOS build workflow.

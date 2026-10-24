@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test';
-import { assetFor, stableReleases, type Release } from './releases';
-const make = (tag: string, published: string): Release => ({ tag_name: tag, name: tag, published_at: published, body: '', html_url: 'https://github.com/example/pebble/releases', assets: ['Windows.exe', 'Mac.dmg', 'Android.apk'].map((suffix) => ({ name: `Pebble-${suffix}`, browser_download_url: `https://github.com/example/pebble/releases/download/v1/Pebble-${suffix}`, size: 100 })) });
+import { assetFor, stableReleases } from './releases';
+const make = (tag, published) => ({ tag_name: tag, name: tag, published_at: published, body: '', html_url: 'https://github.com/example/pebble/releases', assets: ['Windows.exe', 'Mac.dmg', 'Android.apk'].map((suffix) => ({ name: `Pebble-${suffix}`, browser_download_url: `https://github.com/example/pebble/releases/download/v1/Pebble-${suffix}`, size: 100 })) });
 describe('Download rules', () => {
   test('Windows uses EXE', () => expect(assetFor(make('v1', '2026-10-24'), 'windows')?.name).toBe('Pebble-Windows.exe'));
   test('Mac uses DMG', () => expect(assetFor(make('v1', '2026-10-24'), 'mac')?.name).toBe('Pebble-Mac.dmg'));

@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DemoRouteImport } from './routes/demo'
 import { Route as DownloadsRouteImport } from './routes/downloads'
+import { Route as LegalRouteImport } from './routes/legal'
 import { Route as UpdatesRouteImport } from './routes/updates'
 
 const IndexRoute = IndexRouteImport.update({
@@ -29,6 +30,11 @@ const DownloadsRoute = DownloadsRouteImport.update({
   path: '/downloads',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LegalRoute = LegalRouteImport.update({
+  id: '/legal',
+  path: '/legal',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const UpdatesRoute = UpdatesRouteImport.update({
   id: '/updates',
   path: '/updates',
@@ -39,12 +45,14 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/demo': typeof DemoRoute
   '/downloads': typeof DownloadsRoute
+  '/legal': typeof LegalRoute
   '/updates': typeof UpdatesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/demo': typeof DemoRoute
   '/downloads': typeof DownloadsRoute
+  '/legal': typeof LegalRoute
   '/updates': typeof UpdatesRoute
 }
 export interface FileRoutesById {
@@ -52,20 +60,22 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/demo': typeof DemoRoute
   '/downloads': typeof DownloadsRoute
+  '/legal': typeof LegalRoute
   '/updates': typeof UpdatesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/demo' | '/downloads' | '/updates'
+  fullPaths: '/' | '/demo' | '/downloads' | '/legal' | '/updates'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/demo' | '/downloads' | '/updates'
-  id: '__root__' | '/' | '/demo' | '/downloads' | '/updates'
+  to: '/' | '/demo' | '/downloads' | '/legal' | '/updates'
+  id: '__root__' | '/' | '/demo' | '/downloads' | '/legal' | '/updates'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DemoRoute: typeof DemoRoute
   DownloadsRoute: typeof DownloadsRoute
+  LegalRoute: typeof LegalRoute
   UpdatesRoute: typeof UpdatesRoute
 }
 
@@ -92,6 +102,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DownloadsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/legal': {
+      id: '/legal'
+      path: '/legal'
+      fullPath: '/legal'
+      preLoaderRoute: typeof LegalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/updates': {
       id: '/updates'
       path: '/updates'
@@ -106,6 +123,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DemoRoute: DemoRoute,
   DownloadsRoute: DownloadsRoute,
+  LegalRoute: LegalRoute,
   UpdatesRoute: UpdatesRoute,
 }
 export const routeTree = rootRouteImport

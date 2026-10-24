@@ -289,8 +289,8 @@ export function Player() {
         artist: track.artist,
         album: "Pebble",
         artwork: [
-          { src: "/pebble-icon-192.png", sizes: "192x192", type: "image/png" },
-          { src: "/pebble-icon-512.png", sizes: "512x512", type: "image/png" },
+          { src: `${import.meta.env.BASE_URL}pebble-icon-192.png`, sizes: "192x192", type: "image/png" },
+          { src: `${import.meta.env.BASE_URL}pebble-icon-512.png`, sizes: "512x512", type: "image/png" },
         ],
       });
     } else {
@@ -668,13 +668,14 @@ function Visualizer({
       ctx.fillRect(0, 0, w, h);
 
       if (!analyser) return;
-      if (!freq || freq.length !== analyser.frequencyBinCount) {
+      if (!freq || !time || freq.length !== analyser.frequencyBinCount) {
         freq = new Uint8Array(analyser.frequencyBinCount);
         time = new Uint8Array(analyser.fftSize);
         smoothRef.current = new Float32Array(analyser.frequencyBinCount);
       }
       analyser.getByteFrequencyData(freq);
-      analyser.getByteTimeDomainData(time!);
+      if (!time || !smoothRef.current) return;
+      analyser.getByteTimeDomainData(time);
 
       // energy metrics
       let bass = 0;
@@ -693,8 +694,8 @@ function Visualizer({
       const cx = w / 2;
       const cy = h / 2;
       const baseR = Math.min(w, h) * 0.18;
-      const smooth = smoothRef.current!;
-      const t = time!;
+      const smooth = smoothRef.current;
+      const t = time;
 
       if (activeMode === "tiedye") {
         // Kaleidoscopic waveform threads — no blob circles, just flowing

@@ -9,19 +9,14 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as UpdatesRouteImport } from './routes/updates'
-import { Route as DownloadsRouteImport } from './routes/downloads'
-import { Route as DemoRouteImport } from './routes/demo'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DemoRouteImport } from './routes/demo'
+import { Route as DownloadsRouteImport } from './routes/downloads'
+import { Route as UpdatesRouteImport } from './routes/updates'
 
-const UpdatesRoute = UpdatesRouteImport.update({
-  id: '/updates',
-  path: '/updates',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DownloadsRoute = DownloadsRouteImport.update({
-  id: '/downloads',
-  path: '/downloads',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DemoRoute = DemoRouteImport.update({
@@ -29,9 +24,14 @@ const DemoRoute = DemoRouteImport.update({
   path: '/demo',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const DownloadsRoute = DownloadsRouteImport.update({
+  id: '/downloads',
+  path: '/downloads',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UpdatesRoute = UpdatesRouteImport.update({
+  id: '/updates',
+  path: '/updates',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -71,18 +71,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/updates': {
-      id: '/updates'
-      path: '/updates'
-      fullPath: '/updates'
-      preLoaderRoute: typeof UpdatesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/downloads': {
-      id: '/downloads'
-      path: '/downloads'
-      fullPath: '/downloads'
-      preLoaderRoute: typeof DownloadsRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/demo': {
@@ -92,11 +85,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DemoRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/downloads': {
+      id: '/downloads'
+      path: '/downloads'
+      fullPath: '/downloads'
+      preLoaderRoute: typeof DownloadsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/updates': {
+      id: '/updates'
+      path: '/updates'
+      fullPath: '/updates'
+      preLoaderRoute: typeof UpdatesRouteImport
       parentRoute: typeof rootRouteImport
     }
   }

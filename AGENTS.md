@@ -13,4 +13,5 @@
 - Keep Electron and installer tooling outside the website import graph; desktop-only Node APIs cannot run on the deployed website.
 - Downloads and updates share a public GitHub Releases feed, configured by public/release-source.json or VITE_RELEASE_REPOSITORY; never invent links when no release exists.
 - Build installers on matching GitHub runners and publish only after all platform jobs succeed; Android signing credentials must stay stable across upgrades.
+- Android test builds are manual, debug-signed Actions artifacts with a separate app identity; never publish them to the production Releases feed, so tests cannot replace user downloads or libraries.
 - Keep legal notices in one /legal content route with section anchors for footer deep links; these anchors navigate within a single unified document rather than replace separate content routes.

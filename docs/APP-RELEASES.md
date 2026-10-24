@@ -9,6 +9,20 @@ The website now has a landing page, /downloads, /updates, and /demo. The existin
 4. Add GitHub Actions secrets ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD. Generate and securely back up a release keystore with Java keytool; preserve it forever so subsequent APKs update the existing app. Never commit a keystore or password. No debug APK is published as a production download.
 5. Enable Actions with permission to write repository contents. Run “Build Pebble apps” from Actions, or push an app change to main.
 
+## Android test first (no release-signing secrets)
+
+For an initial installable Android test, use the separate **Build Android test APK** workflow. Android requires every installable APK to be signed, so this uses an automatically generated debug key rather than a truly unsigned APK. It does not use your production signing credentials.
+
+1. Connect this project to GitHub through Lovable Project settings → Git if not already connected. GitHub sync creates a repository; you do not need to create one separately.
+2. In that repository, open **Actions → Build Android test APK → Run workflow**, select the branch containing this workflow, and start it. If it is not listed, ensure the workflow is on the repository's default branch.
+3. Wait for the run to succeed. Open the completed run and download **Pebble-Android-Test-RUN_NUMBER** from **Artifacts** (GitHub sign-in required). Extract the ZIP to obtain `Pebble-Test-RUN_NUMBER-Android.apk`; artifacts expire after 14 days.
+4. Transfer the APK to an Android 7+ phone, open it, and allow installation from that source only if you trust this build. It appears as **Pebble Test**, separate from the eventual production app.
+5. Import your own music; verify playback, repeat-one, all seven visualizers, saved music after closing/reopening, and offline playback. Music in the website demo is not transferred automatically.
+
+Hosted runs can generate different debug keys. A later test APK may require uninstalling the previous Pebble Test, which deletes its saved library; keep your original music files. Test builds are not suitable for reliable upgrade testing or public release. The stable production key is still required for that.
+
+This manual Android-only workflow does **not** run the Windows/Mac jobs, publish a GitHub Release, or change the site's Coming soon buttons. The existing production workflow still requires release-signing secrets and all three platform builds to succeed. No test APK has been generated or device-tested merely by adding this workflow.
+
 ## Output
 - Windows: traditional Squirrel Setup EXE, x64.
 - macOS: universal Apple Silicon/Intel DMG containing Pebble.app and Applications shortcut.

@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as DemoRouteImport } from './routes/demo'
 import { Route as DownloadsRouteImport } from './routes/downloads'
 import { Route as LegalRouteImport } from './routes/legal'
+import { Route as SupportRouteImport } from './routes/support'
 import { Route as UpdatesRouteImport } from './routes/updates'
 
 const IndexRoute = IndexRouteImport.update({
@@ -35,6 +36,11 @@ const LegalRoute = LegalRouteImport.update({
   path: '/legal',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SupportRoute = SupportRouteImport.update({
+  id: '/support',
+  path: '/support',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const UpdatesRoute = UpdatesRouteImport.update({
   id: '/updates',
   path: '/updates',
@@ -46,6 +52,7 @@ export interface FileRoutesByFullPath {
   '/demo': typeof DemoRoute
   '/downloads': typeof DownloadsRoute
   '/legal': typeof LegalRoute
+  '/support': typeof SupportRoute
   '/updates': typeof UpdatesRoute
 }
 export interface FileRoutesByTo {
@@ -53,6 +60,7 @@ export interface FileRoutesByTo {
   '/demo': typeof DemoRoute
   '/downloads': typeof DownloadsRoute
   '/legal': typeof LegalRoute
+  '/support': typeof SupportRoute
   '/updates': typeof UpdatesRoute
 }
 export interface FileRoutesById {
@@ -61,14 +69,22 @@ export interface FileRoutesById {
   '/demo': typeof DemoRoute
   '/downloads': typeof DownloadsRoute
   '/legal': typeof LegalRoute
+  '/support': typeof SupportRoute
   '/updates': typeof UpdatesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/demo' | '/downloads' | '/legal' | '/updates'
+  fullPaths: '/' | '/demo' | '/downloads' | '/legal' | '/support' | '/updates'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/demo' | '/downloads' | '/legal' | '/updates'
-  id: '__root__' | '/' | '/demo' | '/downloads' | '/legal' | '/updates'
+  to: '/' | '/demo' | '/downloads' | '/legal' | '/support' | '/updates'
+  id:
+    | '__root__'
+    | '/'
+    | '/demo'
+    | '/downloads'
+    | '/legal'
+    | '/support'
+    | '/updates'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -76,6 +92,7 @@ export interface RootRouteChildren {
   DemoRoute: typeof DemoRoute
   DownloadsRoute: typeof DownloadsRoute
   LegalRoute: typeof LegalRoute
+  SupportRoute: typeof SupportRoute
   UpdatesRoute: typeof UpdatesRoute
 }
 
@@ -109,6 +126,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LegalRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/support': {
+      id: '/support'
+      path: '/support'
+      fullPath: '/support'
+      preLoaderRoute: typeof SupportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/updates': {
       id: '/updates'
       path: '/updates'
@@ -124,6 +148,7 @@ const rootRouteChildren: RootRouteChildren = {
   DemoRoute: DemoRoute,
   DownloadsRoute: DownloadsRoute,
   LegalRoute: LegalRoute,
+  SupportRoute: SupportRoute,
   UpdatesRoute: UpdatesRoute,
 }
 export const routeTree = rootRouteImport

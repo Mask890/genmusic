@@ -7,7 +7,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
   return <div className="min-h-dvh bg-background text-foreground">
     <header className="site-header border-b border-border">
       <div className="site-container flex min-h-20 flex-wrap items-center justify-between gap-3 py-4">
-        <Link to="/" className="flex items-center gap-2.5 text-2xl font-bold"><AudioLines className="size-7 text-primary" />pebble<span className="text-primary">.</span></Link>
+        <Link to="/" className="flex items-center gap-2.5 text-2xl font-bold"><AudioLines className="size-7 text-primary" />pebble</Link>
         <nav aria-label="Main navigation" className="flex items-center gap-1 sm:gap-4">
           <Button variant="ghost" asChild><Link to="/downloads" activeProps={{ className: "text-primary" }}>Downloads</Link></Button>
           <Button variant="ghost" asChild><Link to="/updates" activeProps={{ className: "text-primary" }}>Updates</Link></Button>
@@ -18,9 +18,19 @@ export function SiteShell({ children }: { children: ReactNode }) {
     <main>{children}</main>
     <footer className="border-t border-border pt-8">
       <div className="site-container">
-        <div className="flex flex-wrap items-center justify-between gap-4 pb-6 text-xs text-muted-foreground">
-          <span>Pebble. Your music, on your terms.</span>
-          <div className="flex flex-wrap gap-x-5 gap-y-3"><Link to="/demo">Live demo</Link><Link to="/updates">Software updates</Link><span>No ads. Just music.</span></div>
+        <div className="grid gap-8 pb-8 sm:grid-cols-[1fr_auto] sm:gap-12">
+          <div>
+            <Link to="/" className="inline-flex items-center gap-2.5 text-3xl font-bold"><AudioLines className="size-8 text-primary" />pebble</Link>
+            <p className="mt-4 text-sm text-muted-foreground">Pebble. Your music, on your terms.</p>
+            <p className="mt-2 text-xs text-muted-foreground">No ads. Just music.</p>
+          </div>
+          <nav aria-label="Footer navigation" className="grid grid-cols-2 content-start gap-x-10 gap-y-3 text-sm text-muted-foreground">
+            <Link to="/" className="hover:text-primary">Home</Link>
+            <Link to="/downloads" className="hover:text-primary">Downloads</Link>
+            <Link to="/updates" className="hover:text-primary">Software updates</Link>
+            <Link to="/demo" className="hover:text-primary">Live demo</Link>
+            <Link to="/support" className="hover:text-primary">Support docs</Link>
+          </nav>
         </div>
         <div className="flex items-center justify-between gap-4 pt-2 pb-4">
           <nav aria-label="Legal navigation" className="flex flex-wrap gap-x-5 gap-y-3 text-xs text-muted-foreground">

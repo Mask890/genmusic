@@ -9,9 +9,9 @@ export function SiteShell({ children }: { children: ReactNode }) {
       <div className="site-container flex min-h-20 flex-wrap items-center justify-between gap-3 py-4">
         <Link to="/" className="flex items-center gap-2.5 text-2xl font-bold"><AudioLines className="size-7 text-primary" />pebble</Link>
         <nav aria-label="Main navigation" className="flex items-center gap-1 sm:gap-4">
+          <Button variant="ghost" asChild><Link to="/donate" activeProps={{ className: "text-primary" }}>Donate</Link></Button>
           <Button variant="ghost" asChild><Link to="/downloads" activeProps={{ className: "text-primary" }}>Downloads</Link></Button>
           <Button variant="ghost" asChild><Link to="/updates" activeProps={{ className: "text-primary" }}>Updates</Link></Button>
-          <Button variant="ghost" asChild><Link to="/donate" activeProps={{ className: "text-primary" }}>Donate</Link></Button>
           <Button variant="outline" asChild className="hidden sm:inline-flex"><Link to="/demo">Try demo <ArrowUpRight /></Link></Button>
         </nav>
       </div>

@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { AudioLines, ArrowUpRight } from "lucide-react";
+import { AudioLines, ArrowUpRight, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { ReactNode } from "react";
 
@@ -16,6 +16,25 @@ export function SiteShell({ children }: { children: ReactNode }) {
       </div>
     </header>
     <main>{children}</main>
-    <footer className="border-t border-border py-8"><div className="site-container flex flex-wrap items-center justify-between gap-4 text-xs text-muted-foreground"><span>Pebble. Your music, on your terms.</span><div className="flex gap-5"><Link to="/demo">Live demo</Link><Link to="/updates">Software updates</Link><span>No ads. Just music.</span></div></div></footer>
+    <footer className="border-t border-border pt-8">
+      <div className="site-container">
+        <div className="flex flex-wrap items-center justify-between gap-4 pb-6 text-xs text-muted-foreground">
+          <span>Pebble. Your music, on your terms.</span>
+          <div className="flex flex-wrap gap-x-5 gap-y-3"><Link to="/demo">Live demo</Link><Link to="/updates">Software updates</Link><span>No ads. Just music.</span></div>
+        </div>
+        <div className="flex items-center justify-between gap-4 border-t border-border py-5">
+          <div className="min-w-0">
+            <nav aria-label="Legal navigation" className="flex flex-wrap gap-x-5 gap-y-3 text-xs text-muted-foreground">
+              <Link to="/legal" className="transition-colors hover:text-primary">Legal</Link>
+              <Link to="/legal" hash="terms" className="transition-colors hover:text-primary">Terms &amp; Conditions</Link>
+              <Link to="/legal" hash="privacy" className="transition-colors hover:text-primary">Privacy</Link>
+              <Link to="/legal" hash="cookies" className="transition-colors hover:text-primary">Cookies</Link>
+            </nav>
+            <p className="mt-3 text-xs text-muted-foreground">Pebble Music Player · LoveRiviera LLC · New York City, NY</p>
+          </div>
+          <Button variant="outline" size="sm" disabled title="Contact is not available yet" className="shrink-0"><Mail /> Contact</Button>
+        </div>
+      </div>
+    </footer>
   </div>;
 }

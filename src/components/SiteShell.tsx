@@ -24,7 +24,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
             <p className="mt-4 text-sm text-muted-foreground">Pebble. Your music, on your terms.</p>
             <p className="mt-2 text-xs text-muted-foreground">No ads. Just music.</p>
           </div>
-          <nav aria-label="Footer navigation" className="grid grid-cols-2 content-start justify-items-start gap-x-10 gap-y-3 text-sm text-muted-foreground">
+          <nav aria-label="Footer navigation" className="flex flex-wrap content-start items-start gap-x-6 gap-y-2 text-sm text-muted-foreground">
             <Link to="/downloads" className="hover:text-primary">Downloads</Link>
             <Link to="/updates" className="hover:text-primary">Software updates</Link>
             <Link to="/demo" className="hover:text-primary">Live demo</Link>

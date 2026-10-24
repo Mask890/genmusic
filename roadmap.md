@@ -1,5 +1,7 @@
 # Pebble downloads
 
+- [ ] Finish Android, Windows, and macOS installers and activate the download buttons: blocked on authorized GitHub access and a public release destination; production Android also needs stable signing credentials, and finished installers need device testing.
+
 - [x] Set up manual Android test APK workflow without release-signing secrets, isolated from production downloads.
 - [ ] Generate and device-test the Android test APK: requires a GitHub Actions run and an Android device.
 

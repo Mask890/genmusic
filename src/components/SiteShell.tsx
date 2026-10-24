@@ -11,6 +11,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
         <nav aria-label="Main navigation" className="flex items-center gap-1 sm:gap-4">
           <Button variant="ghost" asChild><Link to="/downloads" activeProps={{ className: "text-primary" }}>Downloads</Link></Button>
           <Button variant="ghost" asChild><Link to="/updates" activeProps={{ className: "text-primary" }}>Updates</Link></Button>
+          <Button variant="ghost" asChild><Link to="/donate" activeProps={{ className: "text-primary" }}>Donate</Link></Button>
           <Button variant="outline" asChild className="hidden sm:inline-flex"><Link to="/demo">Try demo <ArrowUpRight /></Link></Button>
         </nav>
       </div>
@@ -29,6 +30,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
             <Link to="/updates" className="hover:text-primary">Software updates</Link>
             <Link to="/demo" className="hover:text-primary">Live demo</Link>
             <Link to="/support" className="hover:text-primary">Support docs</Link>
+            <Link to="/donate" className="hover:text-primary">Donate</Link>
           </nav>
         </div>
         <div className="flex items-center justify-between gap-4 pt-2 pb-4">

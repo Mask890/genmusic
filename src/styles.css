@@ -69,6 +69,7 @@
   --border: oklch(1 0 0 / 0.08);
   --input: oklch(1 0 0 / 0.12);
   --ring: oklch(0.78 0.19 340);
+  --hero-shade: linear-gradient(90deg, oklch(0.13 0.024 300 / 0.97), oklch(0.13 0.024 300 / 0.7) 45%, oklch(0.13 0.024 300 / 0.08));
 }
 
 @layer base {
@@ -122,4 +123,19 @@
   background: var(--surface-glass);
   backdrop-filter: blur(24px) saturate(160%);
   border: 1px solid var(--border);
+}
+
+.site-container { width: min(1120px, calc(100% - 48px)); margin-inline: auto; }
+.site-header { background: var(--background); }
+.pebble-hero { height: min(680px, calc(100svh - 155px)); min-height: 530px; }
+.hero-shade { background: var(--hero-shade); }
+.hero-title { font-size: 100px; line-height: 1; }
+@media (max-width: 640px) {
+  .site-container { width: calc(100% - 40px); }
+  .pebble-hero { height: auto; min-height: 570px; }
+  .hero-title { font-size: 72px; }
+  .pebble-hero > img { object-position: 65% center; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; }
 }

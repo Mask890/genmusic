@@ -26,11 +26,11 @@ export function SiteShell({ children }: { children: ReactNode }) {
             <p className="mt-2 text-xs text-muted-foreground">No ads. Just music.</p>
           </div>
           <nav aria-label="Footer navigation" className="flex flex-wrap content-start items-start gap-x-6 gap-y-2 text-sm text-muted-foreground">
-            <Link to="/downloads" className="hover:text-primary">Downloads</Link>
-            <Link to="/updates" className="hover:text-primary">Software updates</Link>
-            <Link to="/demo" className="hover:text-primary">Live demo</Link>
-            <Link to="/support" className="hover:text-primary">Support docs</Link>
             <Link to="/donate" className="hover:text-primary">Donate</Link>
+            <Link to="/downloads" className="hover:text-primary">Downloads</Link>
+            <Link to="/demo" className="hover:text-primary">Live demo</Link>
+            <Link to="/updates" className="hover:text-primary">Software updates</Link>
+            <Link to="/support" className="hover:text-primary">Support docs</Link>
           </nav>
         </div>
         <div className="flex items-center justify-between gap-4 pt-2 pb-4">

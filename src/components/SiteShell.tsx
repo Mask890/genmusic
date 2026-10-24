@@ -25,7 +25,6 @@ export function SiteShell({ children }: { children: ReactNode }) {
             <p className="mt-2 text-xs text-muted-foreground">No ads. Just music.</p>
           </div>
           <nav aria-label="Footer navigation" className="grid grid-cols-2 content-start gap-x-10 gap-y-3 text-sm text-muted-foreground">
-            <Link to="/" className="hover:text-primary">Home</Link>
             <Link to="/downloads" className="hover:text-primary">Downloads</Link>
             <Link to="/updates" className="hover:text-primary">Software updates</Link>
             <Link to="/demo" className="hover:text-primary">Live demo</Link>

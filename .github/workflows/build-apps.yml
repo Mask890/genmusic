@@ -73,7 +73,7 @@ jobs:
           bun-version: 1.4.4
       - run: bun install --frozen-lockfile
       - run: bunx vite build --config native/vite.config.ts
-      - run: bunx cap add android && bunx cap sync android
+      - run: bunx cap add android && bunx cap sync android && node scripts/prepare-android-native.mjs
       - run: node scripts/prepare-android.mjs
       - name: Build signed APK
         working-directory: android

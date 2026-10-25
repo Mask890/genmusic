@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { Capacitor, registerPlugin } from "@capacitor/core";
 import {
   deleteTrack as dbDelete,
   getAllTracks,
@@ -109,7 +110,22 @@ export function Player() {
         const savedIdx = Number(localStorage.getItem("pebble:current") ?? "0");
         setCurrent(Number.isFinite(savedIdx) && savedIdx < restored.length ? savedIdx : 0);
       })
-      .catch((err) => console.warn("Failed to load library", err));
+      .catch((err) => console.warn("Failed to load library", err))
+      .finally(() => {
+        // In the Android app, automatically pick up music saved on the phone.
+        if (cancelled || !Capacitor.isNativePlatform()) return;
+        const MusicScan = registerPlugin<{ scan(): Promise<{ tracks: { id: string; title: string; artist: string; path: string }[] }> }>("MusicScan");
+        MusicScan.scan()
+          .then(({ tracks: found }) => {
+            if (cancelled || !found.length) return;
+            const scanned: Track[] = found.map((f) => ({ id: f.id, url: Capacitor.convertFileSrc(f.path), title: f.title, artist: f.artist }));
+            setTracks((prev) => {
+              const ids = new Set(prev.map((t) => t.id));
+              return [...prev, ...scanned.filter((t) => !ids.has(t.id))];
+            });
+          })
+          .catch((err) => console.warn("Music scan unavailable", err));
+      });
     const savedShuffle = localStorage.getItem("pebble:shuffle");
     const savedRepeat = localStorage.getItem("pebble:repeat") as RepeatMode | null;
     if (savedShuffle === "1") setShuffle(true);

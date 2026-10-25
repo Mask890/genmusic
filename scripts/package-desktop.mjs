@@ -1,6 +1,6 @@
 import { cp, mkdir, writeFile, readFile, rm } from 'node:fs/promises';
 import { createRequire } from 'node:module';
-import packager from '@electron/packager';
+import { packager } from '@electron/packager';
 const require = createRequire(import.meta.url);
 const version = process.env.APP_VERSION || '0.1.0';
 const stage = 'native-stage';

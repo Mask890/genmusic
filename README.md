@@ -4,6 +4,8 @@ A cute, ad-free mobile music player for your local MP3s with a live audio visual
 
 Built as a Progressive Web App, Pebble can be installed on your home screen and works offline.
 
+☕ Enjoying Pebble? [Buy me a coffee on Ko-fi](https://ko-fi.com/pebble_musicapp) to support development.
+
 ---
 
 ## Table of Contents
